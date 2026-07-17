@@ -40,7 +40,22 @@ app.MapPost("/musica", (JsonElement body) => {
     });
 });
 
-app.MapGet("/musicas/busca", (string titulo) =>
+app.MapGet("/musicas", () =>
+{
+    Musica[] musicasCadastradas = new Musica[todasMusicas];
+
+    for (int i = 0; i < todasMusicas; i++)
+    {
+        musicasCadastradas[i] = musicas[i];
+    }
+
+    return Results.Ok(new
+    {
+        musicasCadastradas
+    });
+});
+
+app.MapGet("/musicas/{titulo}", (string titulo) =>
 {
     Musica[] musicasEncontradas = new Musica[todasMusicas];
 
@@ -48,7 +63,7 @@ app.MapGet("/musicas/busca", (string titulo) =>
 
     for (int i = 0; i < todasMusicas; i++)
     {
-        if (musicas[i].titulo.ToLower() == titulo.ToLower())
+        if (musicas[i].Titulo.ToLower() == titulo.ToLower())
         {
             musicasEncontradas[todasEncontradas] = musicas[i];
             todasEncontradas++;
@@ -73,7 +88,44 @@ app.MapGet("/musicas/busca", (string titulo) =>
 
     return Results.NotFound(new
     {
-        message = "Nenhuma Musica encontrado esse titulo."
+        message = "Nenhuma Musica encontrado esse nesse genero."
+    });
+});
+
+app.MapGet("/musicas/genero/{genero}", (string genero) =>
+{
+    Musica[] musicasEncontradas = new Musica[todasMusicas];
+
+    int todasEncontradas = 0;
+
+    for (int i = 0; i < todasMusicas; i++)
+    {
+        if (musicas[i].Genero.ToLower() == genero.ToLower())
+        {
+            musicasEncontradas[todasEncontradas] = musicas[i];
+            todasEncontradas++;
+        }
+    }
+
+    if (todasEncontradas > 0)
+    {
+        Musica[] resultadoFinal = new Musica[todasEncontradas];
+
+        for (int i = 0; i < todasEncontradas; i++)
+        {
+            resultadoFinal[i] = musicasEncontradas[i];
+        }        
+
+        return Results.Ok(new
+        {
+            genero,
+            musicas = musicasEncontradas
+        });
+    } 
+
+    return Results.NotFound(new
+    {
+        message = "Nenhuma Musica encontrado esse nesse genero."
     });
 });
 
