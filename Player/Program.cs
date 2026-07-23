@@ -129,6 +129,33 @@ app.MapGet("/musicas/genero/{genero}", (string genero) =>
     });
 });
 
+app.MapPut("/musica/{id}", (int id, JsonElement body) =>
+{   
+    for (int i = 0; i < todasMusicas; i++)
+    {
+        if (musicas[i].Id == id)
+        {
+            musicas[i].Titulo = body.GetProperty("titulo").GetString();
+            musicas[i].Artista = body.GetProperty("artista").GetString();
+            musicas[i].Compositor = body.GetProperty("compositor").GetString();
+            musicas[i].Genero = body.GetProperty("genero").GetString();
+            musicas[i].Ano = body.GetProperty("ano").GetInt32();
+
+            return Results.Ok(
+                new
+                {
+                    musica = musicas[i]
+                }
+            );
+        }
+    }
+
+    return Results.NotFound(new
+    {
+        message = "Musica não encontrado."
+    });
+});
+
 
 
 
