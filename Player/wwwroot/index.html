@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Player - API Control</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    
+    <style>
+        :root {
+            --space-black: #030008;
+            --cosmic-blue: #00d2ff;
+            --neon-violet: #9d4edd;
+            --deep-purple: #3c096c;
+            --nebula-pink: #ff007f;
+            --glass-fill: rgba(15, 10, 25, 0.45);
+            --glass-border: rgba(157, 78, 221, 0.25);
+            --text-main: #f3f0f7;
+            --text-muted: #a5a1b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--space-black);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Fundo Espacial com Camadas */
+        .space-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, var(--deep-purple) 0%, var(--space-black) 80%);
+        }
+
+        .stars {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: radial-gradient(white 1px, transparent 0);
+            background-size: 40px 40px;
+            opacity: 0.25;
+        }
+
+        .nebula {
+            position: absolute;
+            width: 150%; height: 150%;
+            top: -25%; left: -25%;
+            background: radial-gradient(circle at 20% 30%, rgba(0, 210, 255, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(255, 0, 127, 0.1) 0%, transparent 45%);
+            filter: blur(60px);
+            animation: nebulaMove 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes nebulaMove {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.1) translate(2%, 3%); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .glow-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            background: linear-gradient(to right, #fff, var(--cosmic-blue), var(--neon-violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(0, 210, 255, 0.5));
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        /* Status de conexão da API */
+        .api-status {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: rgba(255, 0, 0, 0.15);
+            color: #ff4a4a;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .api-status.online {
+            background: rgba(0, 255, 127, 0.15);
+            color: #00ff7f;
+            border: 1px solid rgba(0, 255, 127, 0.3);
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
+
+        .glass-card {
+            background: var(--glass-fill);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-card h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #fff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        /* Formulário */
+        .cosmic-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--cosmic-blue);
+        }
+
+        input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(157, 78, 221, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--cosmic-blue);
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+        }
+
+        .btn-cosmic {
+            background: linear-gradient(135deg, var(--deep-purple), var(--neon-violet));
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 5px;
+        }
+
+        .btn-cosmic:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+            background: linear-gradient(135deg, var(--neon-violet), var(--cosmic-blue));
+        }
+
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            margin-top: -5px;
+        }
+        
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        /* Área de Filtros e Busca */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+        }
+
+        .search-box select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(157, 78, 221, 0.4);
+            color: #fff;
+            padding: 0 10px;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        /* Lista de Músicas Dinâmicas */
+        .music-universe {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 550px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .music-universe::-webkit-scrollbar { width: 6px; }
+        .music-universe::-webkit-scrollbar-thumb { background: var(--deep-purple); border-radius: 10px; }
+
+        .star-track {
+            background: rgba(5, 2, 10, 0.5);
+            border: 1px solid rgba(157, 78, 221, 0.15);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .star-track:hover {
+            border-color: var(--cosmic-blue);
+            background: rgba(15, 5, 30, 0.6);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.15);
+        }
+
+        .track-info h3 {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .track-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .track-meta {
+            margin-top: 6px;
+            display: flex;
+            gap: 10px;
+            font-size: 0.75rem;
+        }
+
+        .tag {
+            background: rgba(157, 78, 221, 0.15);
+            color: #dfb2ff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(157, 78, 221, 0.3);
+        }
+
+        .tag.year {
+            background: rgba(0, 210, 255, 0.15);
+            color: var(--cosmic-blue);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+        }
+
+        .track-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn.edit-btn:hover {
+            background: rgba(255, 165, 0, 0.15);
+            color: #ffa500;
+            border-color: #ffa500;
+        }
+
+        .action-btn.delete-btn:hover {
+            background: rgba(255, 0, 127, 0.15);
+            color: var(--nebula-pink);
+            border-color: var(--nebula-pink);
+        }
+
+        .empty-galaxy {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="space-bg">
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+        <div class="nebula"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1 class="glow-text">STELLAR PLAYER</h1>

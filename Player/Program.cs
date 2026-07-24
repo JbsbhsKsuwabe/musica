@@ -2,13 +2,21 @@ using player.Musica;
 using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+builder.WebHost.UseUrls("http://0.0.0.0:8000");
 
 var app = builder.Build();
 
-builder.WebHost.UseUrls("http://0.0.0.0:8000");
+app.UseCors("AllowAll");
 
 Musica[] musicas = new Musica[1500];
 int todasMusicas = 0;
@@ -129,35 +137,145 @@ app.MapGet("/musicas/genero/{genero}", (string genero) =>
     });
 });
 
-app.MapPut("/musica/{id}", (int id, JsonElement body) =>
-{   
+app.MapGet("/musicas/artista/{artista}", (string artista) =>
+{
+    Musica[] musicasEncontradas = new Musica[todasMusicas];
+
+    int todasEncontradas = 0;
+
+    for (int i = 0; i < todasMusicas; i++)
+    {
+        if (musicas[i].Artista.ToLower() == artista.ToLower())
+        {
+            musicasEncontradas[todasEncontradas] = musicas[i];
+            todasEncontradas++;
+        }
+    }
+
+    if (todasEncontradas > 0)
+    {
+        Musica[] resultadoFinal = new Musica[todasEncontradas];
+
+        for (int i = 0; i < todasEncontradas; i++)
+        {
+            resultadoFinal[i] = musicasEncontradas[i];
+        }        
+
+        return Results.Ok(new
+        {
+            artista,
+            musicas = musicasEncontradas
+        });
+    } 
+
+    return Results.NotFound(new
+    {
+        message = "Nenhuma música encontrada para este artista."
+    });
+});
+
+app.MapGet("/musicas/ano/{ano}", (int ano) =>
+{
+    Musica[] musicasEncontradas = new Musica[todasMusicas];
+
+    int todasEncontradas = 0;
+
+    for (int i = 0; i < todasMusicas; i++)
+    {
+        if (musicas[i].Ano == ano)
+        {
+            musicasEncontradas[todasEncontradas] = musicas[i];
+            todasEncontradas++;
+        }
+    }
+
+    if (todasEncontradas > 0)
+    {
+        Musica[] resultadoFinal = new Musica[todasEncontradas];
+
+        for (int i = 0; i < todasEncontradas; i++)
+        {
+            resultadoFinal[i] = musicasEncontradas[i];
+        }        
+
+        return Results.Ok(new
+        {
+            ano,
+            musicas = resultadoFinal
+        });
+    } 
+
+    return Results.NotFound(new
+    {
+        message = "Nenhuma música encontrada para este ano."
+    });
+});
+
+app.MapGet("/musicas/compositor/{compositor}", (string compositor) =>
+{
+    Musica[] musicasEncontradas = new Musica[todasMusicas];
+
+    int todasEncontradas = 0;
+
+    for (int i = 0; i < todasMusicas; i++)
+    {
+        if (musicas[i].Compositor.ToLower() == compositor.ToLower())
+        {
+            musicasEncontradas[todasEncontradas] = musicas[i];
+            todasEncontradas++;
+        }
+    }
+
+    if (todasEncontradas > 0)
+    {
+        Musica[] resultadoFinal = new Musica[todasEncontradas];
+
+        for (int i = 0; i < todasEncontradas; i++)
+        {
+            resultadoFinal[i] = musicasEncontradas[i];
+        }        
+
+        return Results.Ok(new
+        {
+            compositor,
+            musicas = musicasEncontradas
+        });
+    } 
+
+    return Results.NotFound(new
+    {
+        message = "Nenhuma música encontrada para este compositor."
+    });
+});
+
+app.MapDelete("/musica/{id}", (int id) =>
+{
     for (int i = 0; i < todasMusicas; i++)
     {
         if (musicas[i].Id == id)
         {
-            musicas[i].Titulo = body.GetProperty("titulo").GetString();
-            musicas[i].Artista = body.GetProperty("artista").GetString();
-            musicas[i].Compositor = body.GetProperty("compositor").GetString();
-            musicas[i].Genero = body.GetProperty("genero").GetString();
-            musicas[i].Ano = body.GetProperty("ano").GetInt32();
+            Musica musicaRemovida = musicas[i];
+            
+            for (int j = i; j < todasMusicas - 1; j++)
+            {
+                musicas[j] = musicas[j + 1];
+            }            
 
-            return Results.Ok(
-                new
-                {
-                    musica = musicas[i]
-                }
-            );
+            todasMusicas--;
+
+            return Results.Ok(new
+            {
+                mensagem = "Música removida com sucesso.",
+                musica = musicaRemovida
+            });
         }
     }
 
     return Results.NotFound(new
     {
-        message = "Musica não encontrado."
+        message = "Música não encontrada."
     });
 });
-
-
-
 
 
 app.Run();

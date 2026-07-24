@@ -32,3 +32,5 @@
 /workspaces/musica/Player/obj/Debug/net10.0/Player.pdb
 /workspaces/musica/Player/obj/Debug/net10.0/Player.genruntimeconfig.cache
 /workspaces/musica/Player/obj/Debug/net10.0/ref/Player.dll
+/workspaces/musica/Player/bin/Debug/net10.0/Player.staticwebassets.runtime.json
+/workspaces/musica/Player/obj/Debug/net10.0/compressed/m4wio525xe-{0}-6va4x5m6se-6va4x5m6se.gz
